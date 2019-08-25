@@ -8,7 +8,35 @@ while (Incoming pakcet ?)
 if (Is destination mac address for current interface ?) then (yes)
     if (Is type IPv4 ?) then (yes) 
         partition "Process IPv4" {                                   
-            :Hello;                                          
+            if (Is version IPv4 ?) then (yes)
+                if (Is the header length greater than 20 byte ?) then (yes)
+                    if (Is TTL 0 ?) then (yes)
+                        :Send ICMP error;
+                    else (no)
+                        :Validate checksum;
+                        :Check fragmentation and reassemble;
+                        if (Is protocol TCP ?) then (yes)
+                            partition "Process TCP" {
+                            }
+                        elseif (Is protocol ICMPv4 ?) then (yes)
+                            partition "Process ICMPv4" {
+                                :Validate checksum;
+                                if (Is type echo request ?) then (yes)
+                                    :Send echo reply;
+                                else (no)
+                                    #AAAAAA:Drop the packet;                                  
+                                endif
+                            }
+                        else (no)
+                            #AAAAAA:Drop the packet;                                  
+                        endif
+                    endif
+                else (no)
+                    #AAAAAA:Drop the packet;                                  
+                endif
+            else (no)
+                #AAAAAA:Drop the packet;                                  
+            endif
         }                                             
     elseif (Is type ARP ?) then (yes)
         partition "Process ARP" {
@@ -20,21 +48,21 @@ if (Is destination mac address for current interface ?) then (yes)
                             :Create ARP reply;
                             :Send ARP reply;
                         endif
-                    else (nothing)
-                        :Drop the packet;                                  
+                    else (no)
+                        #AAAAAA:Drop the packet;                                  
                     endif
-                else (nothing)
-                    :Drop the packet;                                  
+                else (no)
+                    #AAAAAA:Drop the packet;                                  
                 endif
-            else (nothing)
-                :Drop the packet;                                  
+            else (no)
+                #AAAAAA:Drop the packet;                                  
             endif
         }
-    else (nothing)
-        :Drop the packet;                                  
+    else (no)
+        #AAAAAA:Drop the packet;                                  
     endif
 else (no)                                                  
-    :Drop the packet;                                  
+    #AAAAAA:Drop the packet;                                  
 endif                                                 
 
 endwhile
