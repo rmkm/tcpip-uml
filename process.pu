@@ -1,0 +1,43 @@
+@startuml                                                 
+title TCP/IP Packet Processing                                               
+                                               
+start                                                    
+                                                       
+while (Incoming pakcet ?) 
+
+if (Is destination mac address for current interface ?) then (yes)
+    if (Is type IPv4 ?) then (yes) 
+        partition "Process IPv4" {                                   
+            :Hello;                                          
+        }                                             
+    elseif (Is type ARP ?) then (yes)
+        partition "Process ARP" {
+            if (Is hardware type ethernet ?) then (yes)
+                if (Is protocol type IPv4 ?) then (yes)
+                    if (Is target IP address for current interface ?) then (yes)
+                        :Insert ARP translation table;
+                        if (Is opcode REQUEST ?) then (yes)
+                            :Create ARP reply;
+                            :Send ARP reply;
+                        endif
+                    else (nothing)
+                        :Drop the packet;                                  
+                    endif
+                else (nothing)
+                    :Drop the packet;                                  
+                endif
+            else (nothing)
+                :Drop the packet;                                  
+            endif
+        }
+    else (nothing)
+        :Drop the packet;                                  
+    endif
+else (no)                                                  
+    :Drop the packet;                                  
+endif                                                 
+
+endwhile
+                                       
+stop 
+@enduml
